@@ -14,8 +14,11 @@ function getColorForStatus(data) {
       return Cesium.Color.BLUE;
 }
 
-function displayData(output) {
+function displayData(output, enabledCategories) {
   var viewer = new Cesium.Viewer('cesiumContainer');
+  var entities = {};
+  var points = new Map();
+
   for (i = 1; i < output.length; ++i) {
     var point = {
       name : output[i][2],
@@ -29,6 +32,19 @@ function displayData(output) {
       description : '<h1><a href="' + String(output[i][i]) + '">' + String(output[i][2]) + '</a><h1>' +
                     '<p>' + String(output[i][5]).replace(/\n/g,"<br />") + '</p>'
     };
+    var subcategories = output[i][6].split(',');
+    for (j = 0; j < subcategories.length; ++j) {
+      if (subcategories[j] == "")
+        continue;
+      var key = subcategories[j].trim();
+      if (enabledCategories[key]) {
+        console.log(key + ' is enabled');
+        if (!points.has(key))
+          points[key] = [point];
+        else
+          points[key].add(point);
+      }
+    }
     viewer.entities.add(point);
   }
 }
@@ -71,7 +87,10 @@ function addCheckboxesForCategories(categories) {
     var element = document.createElement("input");
     element.name = categories[i];
     element.type = "checkbox";
-    element.checked = false;
+    if (i < 3)
+      element.checked = true;
+    else
+      element.checked = false;
     element.id = "category_" + String(i);
     element.onclick = togglingCategories;
     checkbox.appendChild(element);
