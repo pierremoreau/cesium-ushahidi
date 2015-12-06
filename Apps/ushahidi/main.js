@@ -16,37 +16,51 @@ function getColorForStatus(data) {
 
 function displayData(output, enabledCategories) {
   var viewer = new Cesium.Viewer('cesiumContainer');
-  var entities = {};
+  var entities = new Set();
   var points = new Map();
 
   for (i = 1; i < output.length; ++i) {
-    var point = {
+    var point = new Cesium.Entity({
       name : output[i][2],
       position : Cesium.Cartesian3.fromDegrees(output[i][8], output[i][7]),
       point : {
-        color : getColorForStatus(output[i]).withAlpha(0.8),
-        outline : true,
+//        color : getColorForStatus(output[i]).withAlpha(0.8),
+        color : Cesium.Color.RED,
         outlineColor : Cesium.Color.BLACK,
+        outlineWidth : 2,
         pixelSize: 10
       },
       description : '<h1><a href="' + String(output[i][i]) + '">' + String(output[i][2]) + '</a><h1>' +
                     '<p>' + String(output[i][5]).replace(/\n/g,"<br />") + '</p>'
-    };
+    });
     var subcategories = output[i][6].split(',');
     for (j = 0; j < subcategories.length; ++j) {
-      if (subcategories[j] == "")
-        continue;
-      var key = subcategories[j].trim();
-      if (enabledCategories[key]) {
-        console.log(key + ' is enabled');
-        if (!points.has(key))
-          points[key] = [point];
-        else
-          points[key].add(point);
+      if (subcategories[j] != "") {
+        var key = subcategories[j].trim();
+        if (enabledCategories[key]) {
+          if (!points.has(key)) {
+            points.set(key, Array.of(point));
+          } else {
+            var array = points.get(key);
+            array.push(point);
+            points.set(key, array);
+          }
+        }
       }
     }
-    viewer.entities.add(point);
   }
+
+  console.log("Cleaning");
+  viewer.entities.removeAll();
+  for (var [key, value] of points) {
+    for (i = 0; i < value.length; ++i) {
+      entities.add(value[i]);
+    }
+  }
+  var tmpArray = Array.from(entities);
+  for (i = 0; i < tmpArray.length; ++i)
+    viewer.entities.add(tmpArray[i]);
+  console.log("Filling done");
 }
 
 function setupToolbar() {
