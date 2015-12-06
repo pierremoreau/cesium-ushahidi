@@ -17,7 +17,7 @@ function getColorForStatus(data) {
 function displayData(output) {
   var viewer = new Cesium.Viewer('cesiumContainer');
   for (i = 1; i < output.length; ++i) {
-    viewer.entities.add({
+    var point = {
       name : output[i][2],
       position : Cesium.Cartesian3.fromDegrees(output[i][8], output[i][7]),
       point : {
@@ -28,7 +28,8 @@ function displayData(output) {
       },
       description : '<h1><a href="' + String(output[i][i]) + '">' + String(output[i][2]) + '</a><h1>' +
                     '<p>' + String(output[i][5]).replace(/\n/g,"<br />") + '</p>'
-    });
+    };
+    viewer.entities.add(point);
   }
 }
 
@@ -58,6 +59,7 @@ function togglingCategories(state) {
 
 function addCheckboxesForCategories(categories) {
   var table = document.getElementById('checkboxesTable');
+  var enabledCategories = {};
 
   for (i = 0; i < categories.length; ++i) {
     var row = table.insertRow(table.rows.length);
@@ -73,7 +75,11 @@ function addCheckboxesForCategories(categories) {
     element.id = "category_" + String(i);
     element.onclick = togglingCategories;
     checkbox.appendChild(element);
+
+    enabledCategories[element.name] = element.checked;
   }
+
+  return enabledCategories;
 }
 
 
@@ -85,8 +91,8 @@ g_xhr.onreadystatechange = function() {
     var parse = require('csv-parse');
     parse(g_xhr.responseText, function(err, output) {
       var categories = extractCategories(output);
-      addCheckboxesForCategories(Array.from(categories));
-      displayData(output);
+      var enabledCategories = addCheckboxesForCategories(Array.from(categories));
+      displayData(output, enabledCategories);
     });
     setupToolbar();
   }
