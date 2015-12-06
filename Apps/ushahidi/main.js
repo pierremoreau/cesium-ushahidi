@@ -19,7 +19,7 @@ function getColorForStatus(data) {
       return Cesium.Color.BLUE;
 }
 
-function displayData(output) {
+function extractPoints(output) {
   g_viewer = new Cesium.Viewer('cesiumContainer');
   var entities = new Set();
 
@@ -51,23 +51,9 @@ function displayData(output) {
       }
     }
   }
-
-  console.log("Cleaning");
-  g_viewer.entities.removeAll();
-  for (var [key, value] of g_points) {
-    if (g_enabledCategories[key]) {
-      for (i = 0; i < value.length; ++i) {
-        entities.add(value[i]);
-      }
-    }
-  }
-  var tmpArray = Array.from(entities);
-  for (i = 0; i < tmpArray.length; ++i)
-    g_viewer.entities.add(tmpArray[i]);
-  console.log("Filling done");
 }
 
-function disp2Data() {
+function displayData() {
   var entities = new Set();
 
   console.log("Cleaning");
@@ -106,9 +92,8 @@ function extractCategories(output) {
 }
 
 function togglingCategories(state) {
-  console.log(this.id + " " + state + " " + this.checked);
   g_enabledCategories[this.name] = this.checked;
-  disp2Data();
+  displayData();
 }
 
 function addCheckboxesForCategories(categories) {
@@ -143,7 +128,8 @@ g_xhr.onreadystatechange = function() {
     parse(g_xhr.responseText, function(err, output) {
       var categories = extractCategories(output);
       addCheckboxesForCategories(Array.from(categories));
-      displayData(output);
+      extractPoints(output);
+      displayData();
     });
     setupToolbar();
   }
