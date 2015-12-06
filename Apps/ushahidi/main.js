@@ -34,7 +34,7 @@ function extractPoints(output) {
         pixelSize: 10
       },
       description : '<h1><a href="' + String(output[i][i]) + '">' + String(output[i][2]) + '</a><h1>' +
-                    '<p>' + String(output[i][5]).replace(/\n/g,"<br />") + '</p>'
+                    '<p>' + output[i][5].replace(/\\n/g,"<br />") + '</p>'
     });
     var subcategories = output[i][6].split(',');
     for (j = 0; j < subcategories.length; ++j) {
