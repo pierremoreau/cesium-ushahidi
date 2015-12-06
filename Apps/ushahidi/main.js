@@ -1,3 +1,8 @@
+var g_enabledCategories = new Map();
+var g_viewer;
+var g_points = new Map();
+
+
 function getColorForStatus(data) {
   var wasVerified = data[23];
   var wasActionTaken = data[25];
@@ -14,10 +19,9 @@ function getColorForStatus(data) {
       return Cesium.Color.BLUE;
 }
 
-function displayData(output, enabledCategories) {
-  var viewer = new Cesium.Viewer('cesiumContainer');
+function displayData(output) {
+  g_viewer = new Cesium.Viewer('cesiumContainer');
   var entities = new Set();
-  var points = new Map();
 
   for (i = 1; i < output.length; ++i) {
     var point = new Cesium.Entity({
@@ -37,29 +41,47 @@ function displayData(output, enabledCategories) {
     for (j = 0; j < subcategories.length; ++j) {
       if (subcategories[j] != "") {
         var key = subcategories[j].trim();
-        if (enabledCategories[key]) {
-          if (!points.has(key)) {
-            points.set(key, Array.of(point));
-          } else {
-            var array = points.get(key);
-            array.push(point);
-            points.set(key, array);
-          }
+        if (!g_points.has(key)) {
+          g_points.set(key, Array.of(point));
+        } else {
+          var array = g_points.get(key);
+          array.push(point);
+          g_points.set(key, array);
         }
       }
     }
   }
 
   console.log("Cleaning");
-  viewer.entities.removeAll();
-  for (var [key, value] of points) {
-    for (i = 0; i < value.length; ++i) {
-      entities.add(value[i]);
+  g_viewer.entities.removeAll();
+  for (var [key, value] of g_points) {
+    if (g_enabledCategories[key]) {
+      for (i = 0; i < value.length; ++i) {
+        entities.add(value[i]);
+      }
     }
   }
   var tmpArray = Array.from(entities);
   for (i = 0; i < tmpArray.length; ++i)
-    viewer.entities.add(tmpArray[i]);
+    g_viewer.entities.add(tmpArray[i]);
+  console.log("Filling done");
+}
+
+function disp2Data() {
+  var entities = new Set();
+
+  console.log("Cleaning");
+  g_viewer.entities.removeAll();
+  for (var [key, value] of g_points) {
+    if (g_enabledCategories[key]) {
+      for (i = 0; i < value.length; ++i) {
+        entities.add(value[i]);
+      }
+    }
+  }
+  var tmpArray = Array.from(entities);
+  for (i = 0; i < tmpArray.length; ++i)
+    g_viewer.entities.add(tmpArray[i]);
   console.log("Filling done");
 }
 
@@ -84,12 +106,13 @@ function extractCategories(output) {
 }
 
 function togglingCategories(state) {
-  console.log(this.id + " " + state);
+  console.log(this.id + " " + state + " " + this.checked);
+  g_enabledCategories[this.name] = this.checked;
+  disp2Data();
 }
 
 function addCheckboxesForCategories(categories) {
   var table = document.getElementById('checkboxesTable');
-  var enabledCategories = {};
 
   for (i = 0; i < categories.length; ++i) {
     var row = table.insertRow(table.rows.length);
@@ -101,18 +124,13 @@ function addCheckboxesForCategories(categories) {
     var element = document.createElement("input");
     element.name = categories[i];
     element.type = "checkbox";
-    if (i < 3)
-      element.checked = true;
-    else
-      element.checked = false;
+    element.checked = false;
     element.id = "category_" + String(i);
     element.onclick = togglingCategories;
     checkbox.appendChild(element);
 
-    enabledCategories[element.name] = element.checked;
+    g_enabledCategories[element.name] = element.checked;
   }
-
-  return enabledCategories;
 }
 
 
@@ -124,8 +142,8 @@ g_xhr.onreadystatechange = function() {
     var parse = require('csv-parse');
     parse(g_xhr.responseText, function(err, output) {
       var categories = extractCategories(output);
-      var enabledCategories = addCheckboxesForCategories(Array.from(categories));
-      displayData(output, enabledCategories);
+      addCheckboxesForCategories(Array.from(categories));
+      displayData(output);
     });
     setupToolbar();
   }
