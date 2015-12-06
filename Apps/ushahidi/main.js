@@ -55,7 +55,6 @@ function extractPoints(output) {
 function displayData() {
   var entities = new Set();
 
-  console.log("Cleaning");
   g_viewer.entities.removeAll();
   for (var [key, value] of g_points) {
     if (g_enabledCategories.get(key)) {
@@ -67,15 +66,6 @@ function displayData() {
   var tmpArray = Array.from(entities);
   for (i = 0; i < tmpArray.length; ++i)
     g_viewer.entities.add(tmpArray[i]);
-  console.log("Filling done");
-}
-
-function setupToolbar() {
-  var displayClosed = { dispClosedEnabled : true };
-  Cesium.knockout.track(displayClosed);
-  var toolbar = document.getElementById('toolbar');
-  Cesium.knockout.applyBindings(displayClosed, toolbar);
-  Cesium.knockout.getObservable(displayClosed, 'dispClosedEnabled').subscribe(function (newValue) {});
 }
 
 function extractCategories(output) {
@@ -91,7 +81,6 @@ function extractCategories(output) {
 }
 
 function togglingCategories(state) {
-  console.log(g_enabledCategories.size + " " + g_enabledCategories);
   g_enabledCategories.set(this.id, this.checked);
   displayData();
 }
@@ -161,7 +150,6 @@ g_xhr.onreadystatechange = function() {
       extractPoints(output);
       displayData();
     });
-    setupToolbar();
   }
 }
 g_xhr.send(null);
