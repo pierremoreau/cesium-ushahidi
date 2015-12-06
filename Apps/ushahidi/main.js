@@ -69,7 +69,7 @@ function addCheckboxesForCategories(categories) {
     var element = document.createElement("input");
     element.name = categories[i];
     element.type = "checkbox";
-    element.checked = true;
+    element.checked = false;
     element.id = "category_" + String(i);
     element.onclick = togglingCategories;
     checkbox.appendChild(element);
@@ -78,19 +78,17 @@ function addCheckboxesForCategories(categories) {
 
 
 
-var output = [];
-var categories = [];
-var xhr = new XMLHttpRequest();
-xhr.open( 'GET', 'quakemap.csv', true );
-xhr.onreadystatechange = function() {
-  if ( xhr.readyState === 4 && xhr.status === 200 ) {
+var g_xhr = new XMLHttpRequest();
+g_xhr.open( 'GET', 'quakemap.csv', true );
+g_xhr.onreadystatechange = function() {
+  if ( g_xhr.readyState === 4 && g_xhr.status === 200 ) {
     var parse = require('csv-parse');
-    parse(xhr.responseText, function(err, output) {
-      categories = extractCategories(output);
+    parse(g_xhr.responseText, function(err, output) {
+      var categories = extractCategories(output);
       addCheckboxesForCategories(Array.from(categories));
       displayData(output);
     });
     setupToolbar();
   }
 }
-xhr.send(null);
+g_xhr.send(null);
