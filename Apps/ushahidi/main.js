@@ -28,7 +28,7 @@ function extractPoints(output) {
       name : output[i][2],
       position : Cesium.Cartesian3.fromDegrees(output[i][8], output[i][7]),
       point : {
-//        color : getColorForStatus(output[i]).withAlpha(0.8),
+        color : getColorForStatus(output[i]).withAlpha(0.8),
         color : Cesium.Color.RED,
         outlineColor : Cesium.Color.BLACK,
         outlineWidth : 2,
@@ -59,7 +59,7 @@ function displayData() {
   console.log("Cleaning");
   g_viewer.entities.removeAll();
   for (var [key, value] of g_points) {
-    if (g_enabledCategories[key]) {
+    if (g_enabledCategories.get(key)) {
       for (i = 0; i < value.length; ++i) {
         entities.add(value[i]);
       }
@@ -92,29 +92,60 @@ function extractCategories(output) {
 }
 
 function togglingCategories(state) {
-  g_enabledCategories[this.name] = this.checked;
+  console.log(g_enabledCategories.size + " " + g_enabledCategories);
+  g_enabledCategories.set(this.id, this.checked);
+  displayData();
+}
+
+function checkAll(state) {
+  for (var [key, value] of g_enabledCategories) {
+    document.getElementById(key).checked = true;
+    g_enabledCategories.set(key, true);
+  }
+  displayData();
+}
+
+function uncheckAll(state) {
+  for (var [key, value] of g_enabledCategories) {
+    document.getElementById(key).checked = false;
+    g_enabledCategories.set(key, false);
+  }
   displayData();
 }
 
 function addCheckboxesForCategories(categories) {
   var table = document.getElementById('checkboxesTable');
 
+  var row = table.insertRow(table.rows.length);
+  var checkall = row.insertCell(0);
+  var buttonCheck = document.createElement("input");
+  buttonCheck.type = "button";
+  buttonCheck.value = "Check All";
+  buttonCheck.onclick = checkAll;
+  checkall.appendChild(buttonCheck);
+
+  var uncheckall = row.insertCell(1);
+  var buttonUncheck = document.createElement("input");
+  buttonUncheck.type = "button";
+  buttonUncheck.value = "Uncheck All";
+  buttonUncheck.onclick = uncheckAll;
+  uncheckall.appendChild(buttonUncheck);
+
   for (i = 0; i < categories.length; ++i) {
-    var row = table.insertRow(table.rows.length);
+    row = table.insertRow(table.rows.length);
 
     var label = row.insertCell(0);
     label.innerHTML = categories[i];
 
     var checkbox = row.insertCell(1);
     var element = document.createElement("input");
-    element.name = categories[i];
+    element.id = categories[i];
     element.type = "checkbox";
     element.checked = false;
-    element.id = "category_" + String(i);
     element.onclick = togglingCategories;
     checkbox.appendChild(element);
 
-    g_enabledCategories[element.name] = element.checked;
+    g_enabledCategories.set(element.id, element.checked);
   }
 }
 
