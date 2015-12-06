@@ -29,7 +29,6 @@ function extractPoints(output) {
       position : Cesium.Cartesian3.fromDegrees(output[i][8], output[i][7]),
       point : {
         color : getColorForStatus(output[i]).withAlpha(0.8),
-        color : Cesium.Color.RED,
         outlineColor : Cesium.Color.BLACK,
         outlineWidth : 2,
         pixelSize: 10
